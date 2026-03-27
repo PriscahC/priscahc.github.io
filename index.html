@@ -9,504 +9,677 @@
 <meta name="keywords" content="Priscila Adhiambo, geospatial analyst, AI, Nairobi, Kenya, Outgrow, precision agriculture, GIS, LiDAR, drone mapping">
 <meta property="og:title" content="Priscila Adhiambo — Geospatial Analyst & AI Builder">
 <meta property="og:description" content="Building at the intersection of maps, AI, and African agriculture.">
-<meta property="og:url" content="https://priscahcodes.github.io">
+<meta property="og:url" content="https://PriscahC.github.io">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Playfair+Display:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  :root {
-    --teal: #1D9E75;
-    --teal-dim: #0F6E56;
-    --teal-glow: rgba(29,158,117,0.12);
-    --bg: #0b0e0d;
-    --bg2: #111614;
-    --grid: rgba(29,158,117,0.07);
-    --text: #e8ede9;
-    --muted: #7a9080;
-    --border: rgba(29,158,117,0.2);
-  }
+:root {
+  --teal: #1D9E75;
+  --teal-glow: rgba(29,158,117,0.1);
+  --neon-green: #39ff8f;
+  --neon-cyan: #00ffe7;
+  --neon-pink: #ff2afc;
+  --bg: #080b0a;
+  --bg2: #0e1210;
+  --bg3: #131916;
+  --grid: rgba(29,158,117,0.06);
+  --text: #ddeae0;
+  --muted: #6b8070;
+  --border: rgba(29,158,117,0.18);
+  --border2: rgba(57,255,143,0.15);
+}
 
-  html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Mono', monospace;
-    font-size: 14px;
-    line-height: 1.7;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 14px;
+  line-height: 1.7;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
 
-  /* Grid background */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(var(--grid) 1px, transparent 1px),
-      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-    background-size: 48px 48px;
-    pointer-events: none;
-    z-index: 0;
-  }
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 52px 52px;
+  animation: gridShift 22s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+@keyframes gridShift {
+  0% { background-position: 0 0; }
+  100% { background-position: 52px 52px; }
+}
 
-  /* Radial glow */
-  body::after {
-    content: '';
-    position: fixed;
-    top: -20vh;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80vw;
-    height: 80vh;
-    background: radial-gradient(ellipse, rgba(29,158,117,0.06) 0%, transparent 70%);
-    pointer-events: none;
-    z-index: 0;
-  }
+.scan-line {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--neon-green), transparent);
+  animation: scan 7s ease-in-out infinite;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.35;
+}
+@keyframes scan {
+  0% { top: 0%; opacity: 0; }
+  8% { opacity: 0.35; }
+  92% { opacity: 0.15; }
+  100% { top: 100%; opacity: 0; }
+}
 
-  .wrap {
-    position: relative;
-    z-index: 1;
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 0 2rem;
-  }
+.accent-tl {
+  position: fixed;
+  top: 64px; left: 0;
+  width: 80px; height: 80px;
+  border-top: 1px solid rgba(57,255,143,0.12);
+  border-left: 1px solid rgba(57,255,143,0.12);
+  pointer-events: none;
+  z-index: 0;
+}
+.accent-br {
+  position: fixed;
+  bottom: 0; right: 0;
+  width: 80px; height: 80px;
+  border-bottom: 1px solid rgba(0,255,231,0.1);
+  border-right: 1px solid rgba(0,255,231,0.1);
+  pointer-events: none;
+  z-index: 0;
+}
 
-  /* NAV */
-  nav {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 100;
-    background: rgba(11,14,13,0.85);
-    backdrop-filter: blur(8px);
-    border-bottom: 1px solid var(--border);
-  }
-  nav .wrap {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 1rem;
-    padding-bottom: 1rem;
-  }
-  .nav-brand {
-    font-size: 12px;
-    color: var(--teal);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-  }
-  .nav-links { display: flex; gap: 2rem; }
-  .nav-links a {
-    color: var(--muted);
-    text-decoration: none;
-    font-size: 12px;
-    letter-spacing: 0.06em;
-    transition: color 0.2s;
-  }
-  .nav-links a:hover { color: var(--teal); }
+/* NAV */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  background: rgba(8,11,10,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0.85rem 3rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.nav-brand {
+  font-size: 12px;
+  color: var(--neon-green);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-shadow: 0 0 14px rgba(57,255,143,0.45);
+}
+.nav-links { display: flex; gap: 2.5rem; }
+.nav-links a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  transition: color 0.2s, text-shadow 0.2s;
+}
+.nav-links a:hover {
+  color: var(--neon-cyan);
+  text-shadow: 0 0 8px rgba(0,255,231,0.5);
+}
 
-  /* HERO */
-  .hero {
-    padding: 140px 0 80px;
-  }
-  .coords {
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 0.1em;
-    margin-bottom: 2rem;
-    opacity: 0;
-    animation: fadeUp 0.6s ease 0.1s forwards;
-  }
-  .hero h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(2.4rem, 6vw, 3.8rem);
-    font-weight: 400;
-    line-height: 1.1;
-    letter-spacing: -0.01em;
-    color: var(--text);
-    opacity: 0;
-    animation: fadeUp 0.7s ease 0.2s forwards;
-  }
-  .hero h1 em {
-    font-style: italic;
-    color: var(--teal);
-  }
-  .hero-sub {
-    margin-top: 1.5rem;
-    font-size: 13px;
-    color: var(--muted);
-    max-width: 480px;
-    line-height: 1.8;
-    opacity: 0;
-    animation: fadeUp 0.7s ease 0.35s forwards;
-  }
-  .hero-ctas {
-    margin-top: 2.5rem;
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    opacity: 0;
-    animation: fadeUp 0.7s ease 0.5s forwards;
-  }
-  .btn {
-    display: inline-block;
-    padding: 0.6rem 1.4rem;
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    letter-spacing: 0.08em;
-    text-decoration: none;
-    border-radius: 2px;
-    transition: all 0.2s;
-  }
-  .btn-primary {
-    background: var(--teal);
-    color: #041a10;
-    border: 1px solid var(--teal);
-  }
-  .btn-primary:hover { background: #23bb8a; }
-  .btn-ghost {
-    background: transparent;
-    color: var(--teal);
-    border: 1px solid var(--border);
-  }
-  .btn-ghost:hover { border-color: var(--teal); background: var(--teal-glow); }
+/* PAGE */
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 3rem;
+  position: relative;
+  z-index: 1;
+}
 
-  /* DIVIDER */
-  .divider {
-    border: none;
-    border-top: 1px solid var(--border);
-    margin: 3rem 0;
-  }
+/* HERO */
+.hero {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 4rem;
+  align-items: center;
+  padding-top: 64px;
+}
 
-  /* STATS */
-  .stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 4rem;
-    opacity: 0;
-    animation: fadeUp 0.7s ease 0.6s forwards;
-  }
-  .stat {
-    background: var(--bg2);
-    padding: 1.25rem 1rem;
-    text-align: center;
-  }
-  .stat-n {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.8rem;
-    color: var(--teal);
-    display: block;
-    line-height: 1;
-    margin-bottom: 4px;
-  }
-  .stat-l {
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
+.coords {
+  font-size: 11px;
+  color: var(--neon-cyan);
+  letter-spacing: 0.14em;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 0 8px rgba(0,255,231,0.4);
+  opacity: 0;
+  animation: fadeUp 0.5s ease 0.1s forwards;
+}
 
-  /* SECTION */
-  section { margin-bottom: 4rem; }
-  .section-label {
-    font-size: 10px;
-    color: var(--teal);
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-  .section-label::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.6rem, 4vw, 4.4rem);
+  font-weight: 400;
+  line-height: 1.08;
+  color: var(--text);
+  opacity: 0;
+  animation: fadeUp 0.6s ease 0.25s forwards;
+}
+.hero h1 em {
+  font-style: italic;
+  color: var(--neon-green);
+  text-shadow: 0 0 24px rgba(57,255,143,0.3);
+}
 
-  /* PROJECTS */
-  .projects { display: grid; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
-  .project {
-    background: var(--bg2);
-    padding: 1.25rem 1.5rem;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 0.5rem;
-    align-items: start;
-    transition: background 0.2s;
-    text-decoration: none;
-    color: inherit;
-  }
-  .project:hover { background: var(--teal-glow); }
-  .project-name {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text);
-    margin-bottom: 3px;
-  }
-  .project-desc {
-    font-size: 12px;
-    color: var(--muted);
-    line-height: 1.6;
-  }
-  .project-tag {
-    font-size: 10px;
-    color: var(--teal);
-    border: 1px solid var(--border);
-    padding: 2px 8px;
-    border-radius: 2px;
-    white-space: nowrap;
-    margin-top: 2px;
-  }
+.hero-sub {
+  margin-top: 1.75rem;
+  font-size: 13px;
+  color: var(--muted);
+  max-width: 500px;
+  line-height: 1.9;
+  opacity: 0;
+  animation: fadeUp 0.6s ease 0.4s forwards;
+}
 
-  /* STACK */
-  .stack-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .tag {
-    font-size: 11px;
-    color: var(--muted);
-    border: 1px solid var(--border);
-    padding: 4px 12px;
-    border-radius: 2px;
-    transition: all 0.15s;
-  }
-  .tag:hover { color: var(--teal); border-color: var(--teal); }
+.hero-ctas {
+  margin-top: 2.5rem;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  opacity: 0;
+  animation: fadeUp 0.6s ease 0.55s forwards;
+}
 
-  /* ABOUT */
-  .about-text {
-    font-size: 13px;
-    color: var(--muted);
-    line-height: 1.9;
-    max-width: 600px;
-  }
-  .about-text strong { color: var(--text); font-weight: 400; }
+.btn {
+  display: inline-block;
+  padding: 0.65rem 1.5rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  border-radius: 2px;
+  transition: all 0.25s;
+  text-transform: uppercase;
+}
+.btn-primary {
+  background: var(--neon-green);
+  color: #041a10;
+  border: 1px solid var(--neon-green);
+  box-shadow: 0 0 18px rgba(57,255,143,0.28);
+}
+.btn-primary:hover { background: #5fffaa; box-shadow: 0 0 30px rgba(57,255,143,0.5); }
+.btn-ghost {
+  background: transparent;
+  color: var(--neon-cyan);
+  border: 1px solid rgba(0,255,231,0.28);
+}
+.btn-ghost:hover {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 14px rgba(0,255,231,0.18);
+  background: rgba(0,255,231,0.04);
+}
 
-  /* WINS */
-  .wins { display: grid; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
-  .win {
-    background: var(--bg2);
-    padding: 1rem 1.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-  }
-  .win-title { font-size: 12px; color: var(--text); }
-  .win-meta { font-size: 11px; color: var(--muted); white-space: nowrap; }
-  .win-badge {
-    font-size: 10px;
-    background: rgba(29,158,117,0.15);
-    color: var(--teal);
-    padding: 2px 8px;
-    border-radius: 2px;
-  }
+/* TERMINAL */
+.hero-right {
+  opacity: 0;
+  animation: fadeLeft 0.7s ease 0.7s forwards;
+}
+@keyframes fadeLeft {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.terminal {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 0 40px rgba(57,255,143,0.07);
+}
+.terminal-bar {
+  background: var(--bg3);
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot-r { background: #ff5f57; }
+.dot-y { background: #ffbd2e; }
+.dot-g { background: var(--neon-green); box-shadow: 0 0 6px rgba(57,255,143,0.6); }
+.terminal-title { font-size: 10px; color: var(--muted); margin-left: 8px; letter-spacing: 0.06em; }
+.terminal-body { padding: 1.25rem 1.5rem; font-size: 12px; line-height: 2.1; }
+.t-prompt { color: var(--neon-green); }
+.t-out { color: var(--muted); }
+.t-hi { color: var(--neon-cyan); }
+.t-pink { color: var(--neon-pink); text-shadow: 0 0 6px rgba(255,42,252,0.3); }
+.cursor {
+  display: inline-block;
+  width: 8px; height: 14px;
+  background: var(--neon-green);
+  animation: blink 1s step-end infinite;
+  vertical-align: middle;
+  box-shadow: 0 0 6px rgba(57,255,143,0.8);
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 
-  /* FOOTER */
-  footer {
-    border-top: 1px solid var(--border);
-    padding: 2rem 0 3rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-    font-size: 11px;
-    color: var(--muted);
-  }
-  footer a { color: var(--teal); text-decoration: none; }
-  footer a:hover { text-decoration: underline; }
+/* STATS */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 5rem;
+}
+.stat {
+  background: var(--bg2);
+  padding: 1.5rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  transition: background 0.2s;
+}
+.stat:hover { background: var(--bg3); }
+.stat-n {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.2rem;
+  color: var(--neon-green);
+  text-shadow: 0 0 18px rgba(57,255,143,0.38);
+  line-height: 1;
+  flex-shrink: 0;
+}
+.stat-l { font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; display: block; }
+.stat-sub { font-size: 11px; color: var(--muted); opacity: 0.7; }
 
-  /* ANIMATIONS */
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .reveal {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
-  }
-  .reveal.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* LAYOUT */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  margin-bottom: 5rem;
+  align-items: start;
+}
+.two-col-wide {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 3rem;
+  margin-bottom: 5rem;
+  align-items: start;
+}
 
-  @media (max-width: 540px) {
-    .stats { grid-template-columns: 1fr; }
-    .hero { padding-top: 110px; }
-    .win { flex-wrap: wrap; }
-    nav .wrap { flex-direction: column; gap: 0.5rem; text-align: center; }
-  }
+.section-label {
+  font-size: 10px;
+  color: var(--neon-cyan);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-shadow: 0 0 8px rgba(0,255,231,0.28);
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border2), transparent);
+}
+
+/* PROJECTS */
+.projects { display: grid; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+.project {
+  background: var(--bg2);
+  padding: 1.25rem 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+  align-items: start;
+  text-decoration: none;
+  color: inherit;
+  border-left: 3px solid transparent;
+  transition: background 0.2s, border-left-color 0.2s;
+}
+.project:hover { background: var(--teal-glow); border-left-color: var(--neon-green); }
+.project-name { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; transition: color 0.2s; }
+.project:hover .project-name { color: var(--neon-green); text-shadow: 0 0 8px rgba(57,255,143,0.3); }
+.project-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.project-tag {
+  font-size: 10px; color: var(--neon-cyan);
+  border: 1px solid rgba(0,255,231,0.2);
+  padding: 2px 8px; border-radius: 2px; white-space: nowrap; margin-top: 2px;
+}
+
+/* STACK */
+.stack-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.tag {
+  font-size: 11px; color: var(--muted);
+  border: 1px solid var(--border);
+  padding: 5px 12px; border-radius: 2px;
+  transition: all 0.2s; cursor: default;
+}
+.tag:hover { color: var(--neon-green); border-color: var(--neon-green); box-shadow: 0 0 10px rgba(57,255,143,0.15); text-shadow: 0 0 6px rgba(57,255,143,0.4); }
+.tag.pink { color: #c97de8; border-color: rgba(255,42,252,0.2); }
+.tag.pink:hover { color: var(--neon-pink); border-color: var(--neon-pink); box-shadow: 0 0 10px rgba(255,42,252,0.2); }
+
+/* WINS */
+.wins { display: grid; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+.win {
+  background: var(--bg2); padding: 1rem 1.5rem;
+  display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+  transition: background 0.2s;
+}
+.win:hover { background: var(--bg3); }
+.win-title { font-size: 12px; color: var(--text); }
+.win-meta { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.win-badge {
+  font-size: 10px; background: rgba(57,255,143,0.08); color: var(--neon-green);
+  padding: 3px 10px; border-radius: 2px; border: 1px solid rgba(57,255,143,0.2);
+  white-space: nowrap; text-shadow: 0 0 6px rgba(57,255,143,0.3);
+}
+
+/* ABOUT */
+.about-text { font-size: 13px; color: var(--muted); line-height: 2; }
+.about-text strong { color: var(--text); font-weight: 400; }
+.neon-word { color: var(--neon-green); text-shadow: 0 0 8px rgba(57,255,143,0.3); }
+
+/* MAP CARD */
+.location-card { background: var(--bg2); border: 1px solid var(--border2); border-radius: 4px; overflow: hidden; margin-top: 1.5rem; }
+.map-placeholder {
+  height: 130px;
+  background:
+    repeating-linear-gradient(0deg, var(--grid) 0, var(--grid) 1px, transparent 1px, transparent 40px),
+    repeating-linear-gradient(90deg, var(--grid) 0, var(--grid) 1px, transparent 1px, transparent 40px),
+    var(--bg3);
+  display: flex; align-items: center; justify-content: center;
+}
+.map-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--neon-pink);
+  box-shadow: 0 0 0 4px rgba(255,42,252,0.15), 0 0 20px rgba(255,42,252,0.4);
+  animation: pulse 2.5s ease infinite;
+}
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 0 4px rgba(255,42,252,0.15), 0 0 20px rgba(255,42,252,0.4); }
+  50% { box-shadow: 0 0 0 12px rgba(255,42,252,0.04), 0 0 32px rgba(255,42,252,0.5); }
+}
+.location-info { padding: 0.9rem 1.25rem; }
+.location-info strong { color: var(--neon-cyan); font-weight: 400; font-size: 12px; }
+.location-info p { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+/* FOOTER */
+footer {
+  border-top: 1px solid var(--border); padding: 2rem 0 3rem;
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 1rem; font-size: 11px; color: var(--muted); margin-top: 2rem;
+}
+footer a { color: var(--neon-green); text-decoration: none; text-shadow: 0 0 6px rgba(57,255,143,0.28); }
+footer a:hover { text-shadow: 0 0 14px rgba(57,255,143,0.55); }
+
+/* ANIMATIONS */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.65s ease, transform 0.65s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-left { opacity: 0; transform: translateX(-24px); transition: opacity 0.65s ease, transform 0.65s ease; }
+.reveal-left.visible { opacity: 1; transform: translateX(0); }
+.reveal-right { opacity: 0; transform: translateX(24px); transition: opacity 0.65s ease, transform 0.65s ease; }
+.reveal-right.visible { opacity: 1; transform: translateX(0); }
+
+@media (max-width: 900px) {
+  .hero { grid-template-columns: 1fr; min-height: auto; padding-top: 100px; padding-bottom: 3rem; }
+  .hero-right { display: none; }
+  .two-col, .two-col-wide { grid-template-columns: 1fr; gap: 2rem; }
+  .stats-bar { grid-template-columns: 1fr; }
+  .nav-inner { padding: 0.85rem 1.5rem; }
+  .page { padding: 0 1.5rem; }
+}
+@media (max-width: 540px) {
+  .nav-links { gap: 1.25rem; }
+  .win { flex-wrap: wrap; }
+}
 </style>
 </head>
 <body>
 
+<div class="scan-line"></div>
+<div class="accent-tl"></div>
+<div class="accent-br"></div>
+
 <nav>
-  <div class="wrap">
+  <div class="nav-inner">
     <span class="nav-brand">Priscila Adhiambo</span>
     <div class="nav-links">
       <a href="#work">Work</a>
       <a href="#stack">Stack</a>
+      <a href="#wins">Recognition</a>
       <a href="#about">About</a>
-      <a href="https://github.com/PriscahC" target="_blank">GitHub</a>
+      <a href="https://github.com/PriscahC" target="_blank">GitHub ↗</a>
     </div>
   </div>
 </nav>
 
-<main class="wrap">
+<main class="page">
 
+  <!-- HERO -->
   <section class="hero">
-    <p class="coords">— 1.2921° S, 36.8219° E · Nairobi, Kenya</p>
-    <h1>Maps, machines,<br>and <em>African fields.</em></h1>
-    <p class="hero-sub">
-      I'm Priscila Adhiambo — geospatial analyst, AI builder, and founder of Outgrow.
-      I build tools that work where connectivity doesn't.
-    </p>
-    <div class="hero-ctas">
-      <a class="btn btn-primary" href="#work">See my work</a>
-      <a class="btn btn-ghost" href="https://github.com/PriscahC" target="_blank">GitHub profile</a>
+    <div class="hero-left">
+      <p class="coords">▸ 1.2921° S, 36.8219° E · Nairobi, Kenya</p>
+      <h1>Maps, machines,<br>and <em>African fields.</em></h1>
+      <p class="hero-sub">
+        I'm Priscila Adhiambo — geospatial analyst, AI builder, and founder of Outgrow.
+        I build tools that work where connectivity doesn't.
+      </p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#work">See my work</a>
+        <a class="btn btn-ghost" href="https://github.com/PriscahC" target="_blank">GitHub profile ↗</a>
+      </div>
+    </div>
+
+    <div class="hero-right">
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="dot dot-r"></span>
+          <span class="dot dot-y"></span>
+          <span class="dot dot-g"></span>
+          <span class="terminal-title">priscila@nairobi ~ </span>
+        </div>
+        <div class="terminal-body">
+          <div><span class="t-prompt">$ </span>whoami</div>
+          <div class="t-hi">Priscila Adhiambo</div>
+          <div style="margin-top:6px"><span class="t-prompt">$ </span>cat roles.txt</div>
+          <div class="t-out">Geospatial Analyst · GIS Consultant</div>
+          <div class="t-pink">Founder, Outgrow AgriTech</div>
+          <div style="margin-top:6px"><span class="t-prompt">$ </span>cat stack.sh</div>
+          <div class="t-out">TypeScript · Python · QGIS</div>
+          <div class="t-hi">LiDAR · USSD · LangChain · AWS</div>
+          <div style="margin-top:6px"><span class="t-prompt">$ </span>git log --wins</div>
+          <div class="t-out">🥇 WiSSA IWD 2026</div>
+          <div class="t-out">🥇 DSN + Meta AI</div>
+          <div class="t-out">🥇 UNDP Timbuktu</div>
+          <div style="margin-top:6px"><span class="t-prompt">$ </span>_<span class="cursor"></span></div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <div class="stats reveal">
+  <!-- STATS -->
+  <div class="stats-bar reveal">
     <div class="stat">
       <span class="stat-n">5</span>
-      <span class="stat-l">Countries · Outgrow</span>
+      <div>
+        <span class="stat-l">Countries · Outgrow</span>
+        <span class="stat-sub">KE · UG · NG · GH · MW</span>
+      </div>
     </div>
     <div class="stat">
       <span class="stat-n">1,500+</span>
-      <span class="stat-l">Students trained</span>
+      <div>
+        <span class="stat-l">Students trained</span>
+        <span class="stat-sub">Kenya & Uganda</span>
+      </div>
     </div>
     <div class="stat">
-      <span class="stat-n">🥇 ×3</span>
-      <span class="stat-l">Hackathons won</span>
+      <span class="stat-n">×3</span>
+      <div>
+        <span class="stat-l">Hackathons won</span>
+        <span class="stat-sub">DSN · UNDP · WiSSA</span>
+      </div>
     </div>
   </div>
 
-  <section id="work" class="reveal">
-    <div class="section-label">Selected work</div>
-    <div class="projects">
-      <a class="project" href="https://github.com/PriscahC/outgrow-agritech" target="_blank">
-        <div>
-          <div class="project-name">Outgrow</div>
-          <div class="project-desc">AI advisory platform for smallholder farmers. Crop guidance, pest alerts, market prices via USSD, WhatsApp & IVR. Serving Kenya, Uganda, Nigeria, Ghana, Malawi.</div>
-        </div>
-        <span class="project-tag">TypeScript</span>
-      </a>
-      <a class="project" href="https://github.com/PriscahC/Sawa-Space" target="_blank">
-        <div>
-          <div class="project-name">Sawa-Space</div>
-          <div class="project-desc">Women's economic empowerment platform with AI legal triage (Haki), USSD flow, and HeyGen avatar. Built on Kenyan law. WiSSA IWD 2026 winner.</div>
-        </div>
-        <span class="project-tag">JavaScript</span>
-      </a>
-      <a class="project" href="https://github.com/PriscahC/Spatial-Scripts" target="_blank">
-        <div>
-          <div class="project-name">Spatial-Scripts</div>
-          <div class="project-desc">QGIS/GDAL automation for CHM generation (DSM–DTM), NDRE analysis, LiDAR post-processing, and NDVI COG GeoTIFF workflows.</div>
-        </div>
-        <span class="project-tag">Python</span>
-      </a>
-      <a class="project" href="https://github.com/PriscahC/Mjanga-Hackathon" target="_blank">
-        <div>
-          <div class="project-name">Mjanga AI Challenge</div>
-          <div class="project-desc">Precision agriculture ML submission for the Mjanga AI Challenge. Crop yield prediction from geospatial inputs.</div>
-        </div>
-        <span class="project-tag">Python</span>
-      </a>
-    </div>
-  </section>
-
-  <section id="stack" class="reveal">
-    <div class="section-label">Stack</div>
-    <div class="stack-grid">
-      <span class="tag">TypeScript</span>
-      <span class="tag">Node.js</span>
-      <span class="tag">React</span>
-      <span class="tag">Express</span>
-      <span class="tag">Python</span>
-      <span class="tag">GDAL</span>
-      <span class="tag">rasterio</span>
-      <span class="tag">QGIS</span>
-      <span class="tag">ArcGIS</span>
-      <span class="tag">DJI Terra</span>
-      <span class="tag">LiDAR</span>
-      <span class="tag">Multispectral</span>
-      <span class="tag">AWS S3</span>
-      <span class="tag">rclone</span>
-      <span class="tag">LangChain</span>
-      <span class="tag">Supabase pgvector</span>
-      <span class="tag">USSD</span>
-      <span class="tag">IVR</span>
-      <span class="tag">WhatsApp Cloud API</span>
-      <span class="tag">OpenDroneMap</span>
-    </div>
-  </section>
-
-  <section class="reveal">
-    <div class="section-label">Recognition</div>
-    <div class="wins">
-      <div class="win">
-        <span class="win-title">WiSSA IWD AI Hackathon — Sawa-Space</span>
-        <span class="win-badge">🥇 1st Place</span>
-      </div>
-      <div class="win">
-        <span class="win-title">DSN + Meta AI Hackathon</span>
-        <span class="win-badge">🥇 1st Place</span>
-      </div>
-      <div class="win">
-        <span class="win-title">UNDP Timbuktu Hack for the Environment</span>
-        <span class="win-badge">🥇 1st Place</span>
-      </div>
-      <div class="win">
-        <span class="win-title">HICOOL 2026 Global Startup Competition</span>
-        <span class="win-meta">Modern Agriculture category</span>
-      </div>
-      <div class="win">
-        <span class="win-title">Summer of Bitcoin 2026</span>
-        <span class="win-meta">Chain Lens · Coin Smith</span>
+  <!-- WORK + WINS -->
+  <div class="two-col-wide" id="work">
+    <div class="reveal-left">
+      <div class="section-label">Selected work</div>
+      <div class="projects">
+        <a class="project" href="https://github.com/PriscahC/outgrow-agritech" target="_blank">
+          <div>
+            <div class="project-name">Outgrow</div>
+            <div class="project-desc">AI advisory platform for smallholder farmers. Crop guidance, pest alerts, market prices via USSD, WhatsApp & IVR. 5 countries.</div>
+          </div>
+          <span class="project-tag">TypeScript</span>
+        </a>
+        <a class="project" href="https://github.com/PriscahC/Sawa-Space" target="_blank">
+          <div>
+            <div class="project-name">Sawa-Space</div>
+            <div class="project-desc">Women's economic empowerment platform with AI legal triage (Haki) grounded in Kenyan law. WiSSA IWD 2026 🥇</div>
+          </div>
+          <span class="project-tag">JavaScript</span>
+        </a>
+        <a class="project" href="https://github.com/PriscahC/Spatial-Scripts" target="_blank">
+          <div>
+            <div class="project-name">Spatial-Scripts</div>
+            <div class="project-desc">QGIS/GDAL automation for CHM generation, NDRE analysis, LiDAR post-processing and NDVI COG GeoTIFF workflows.</div>
+          </div>
+          <span class="project-tag">Python</span>
+        </a>
+        <a class="project" href="https://github.com/PriscahC/Mjanga-Hackathon" target="_blank">
+          <div>
+            <div class="project-name">Mjanga AI Challenge</div>
+            <div class="project-desc">Precision agriculture ML. Crop yield prediction from geospatial and satellite inputs.</div>
+          </div>
+          <span class="project-tag">Python</span>
+        </a>
       </div>
     </div>
-  </section>
 
-  <section id="about" class="reveal">
-    <div class="section-label">About</div>
-    <p class="about-text">
-      I'm a geospatial analyst and AI builder based in <strong>Nairobi, Kenya</strong>. 
-      I founded <strong>Outgrow</strong> to bring precision agriculture intelligence to smallholder farmers using channels that already work — USSD, IVR, WhatsApp. 
-      I work as a GIS Consultant at <strong>Lima Labs</strong>, processing LiDAR drone surveys and multispectral imagery for precision agriculture clients across Kenya. 
-      I'm pursuing an <strong>MSc in GIS at Clark University</strong> and hold a BSc in Urban & Regional Planning from Technical University of Kenya, plus certificates from ALX (Software Engineering) and NairoBits Trust (Web Development & UX). 
-      <br><br>
-      Outside of work I run civic tech through the <strong>Mtaa Safi Initiative</strong> and <strong>Wogi Voices</strong>, a women's empowerment project. I've trained 1,500+ students across Kenya and Uganda.
-    </p>
-  </section>
+    <div class="reveal-right" id="wins">
+      <div class="section-label">Recognition</div>
+      <div class="wins">
+        <div class="win">
+          <span class="win-title">WiSSA IWD AI Hackathon</span>
+          <span class="win-badge">🥇 1st Place</span>
+        </div>
+        <div class="win">
+          <span class="win-title">DSN + Meta AI Hackathon</span>
+          <span class="win-badge">🥇 1st Place</span>
+        </div>
+        <div class="win">
+          <span class="win-title">UNDP Timbuktu Hack</span>
+          <span class="win-badge">🥇 1st Place</span>
+        </div>
+        <div class="win">
+          <span class="win-title">HICOOL 2026 Startup Competition</span>
+          <span class="win-meta">Modern Agriculture</span>
+        </div>
+        <div class="win">
+          <span class="win-title">Summer of Bitcoin 2026</span>
+          <span class="win-meta">Chain Lens · Coin Smith</span>
+        </div>
+        <div class="win">
+          <span class="win-title">Innovate4Cities 2026</span>
+          <span class="win-meta">"When the Map Warned Us"</span>
+        </div>
+      </div>
+      <div class="location-card">
+        <div class="map-placeholder">
+          <div class="map-dot"></div>
+        </div>
+        <div class="location-info">
+          <strong>Nairobi, Kenya</strong>
+          <p>1.2921° S, 36.8219° E · UTC+3</p>
+          <p>Open to remote & on-site engagements</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STACK + ABOUT -->
+  <div class="two-col" id="stack">
+    <div class="reveal-left">
+      <div class="section-label">Stack</div>
+      <div class="stack-grid">
+        <span class="tag">TypeScript</span>
+        <span class="tag">Node.js</span>
+        <span class="tag">React</span>
+        <span class="tag">Express</span>
+        <span class="tag">Python</span>
+        <span class="tag pink">GDAL</span>
+        <span class="tag pink">rasterio</span>
+        <span class="tag pink">QGIS</span>
+        <span class="tag pink">ArcGIS</span>
+        <span class="tag pink">DJI Terra</span>
+        <span class="tag pink">LiDAR</span>
+        <span class="tag pink">Multispectral</span>
+        <span class="tag">AWS S3</span>
+        <span class="tag">rclone</span>
+        <span class="tag">LangChain</span>
+        <span class="tag">Supabase pgvector</span>
+        <span class="tag">USSD</span>
+        <span class="tag">IVR</span>
+        <span class="tag">WhatsApp API</span>
+        <span class="tag pink">OpenDroneMap</span>
+      </div>
+    </div>
+
+    <div class="reveal-right" id="about">
+      <div class="section-label">About</div>
+      <p class="about-text">
+        I'm a geospatial analyst and AI builder based in <strong>Nairobi, Kenya</strong>.
+        I founded <span class="neon-word">Outgrow</span> to bring precision agriculture intelligence to smallholder farmers — via channels that already work: USSD, IVR, WhatsApp.
+        <br><br>
+        GIS Consultant at <strong>Lima Labs</strong>, processing LiDAR drone surveys and multispectral imagery for precision agriculture clients. Pursuing an <strong>MSc in GIS at Clark University</strong>.
+        <br><br>
+        BSc Urban & Regional Planning, TU Kenya. Certs from <strong>ALX</strong> (Software Engineering) and <strong>NairoBits Trust</strong> (Web Dev & UX).
+        <br><br>
+        Civic tech through <span class="neon-word">Mtaa Safi</span> and <span class="neon-word">Wogi Voices</span>. 1,500+ students trained across Kenya and Uganda.
+      </p>
+    </div>
+  </div>
 
 </main>
 
-<footer class="wrap reveal">
-  <span>Priscila Adhiambo · Nairobi, Kenya</span>
+<footer class="page reveal">
+  <span>Priscila Adhiambo · Nairobi, Kenya · 2026</span>
   <span>
-    <a href="https://github.com/PriscahC" target="_blank">GitHub</a> &nbsp;·&nbsp;
-    <a href="mailto:opiyopriscah4@gmail.com">Email</a>
+    <a href="https://github.com/PriscahC" target="_blank">GitHub ↗</a>
+    &nbsp;·&nbsp;
+    <a href="mailto:your@email.com">Email ↗</a>
   </span>
 </footer>
 
 <script>
-const reveals = document.querySelectorAll('.reveal');
+const els = document.querySelectorAll('.reveal, .reveal-left, .reveal-right');
 const io = new IntersectionObserver((entries) => {
-  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
-}, { threshold: 0.1 });
-reveals.forEach(el => io.observe(el));
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 80);
+      io.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.08 });
+els.forEach(el => io.observe(el));
 </script>
 
 </body>
